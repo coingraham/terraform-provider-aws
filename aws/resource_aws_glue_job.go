@@ -113,6 +113,7 @@ func resourceAwsGlueJob() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"tags": tagsSchema(),
 		},
 	}
 }
@@ -165,6 +166,10 @@ func resourceAwsGlueJobCreate(d *schema.ResourceData, meta interface{}) error {
 
 	if v, ok := d.GetOk("security_configuration"); ok {
 		input.SecurityConfiguration = aws.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("tags"); ok {
+		input.Tags = tagsFromMapGeneric(v.(map[string]interface{}))
 	}
 
 	log.Printf("[DEBUG] Creating Glue Job: %s", input)
