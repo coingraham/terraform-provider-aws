@@ -55,17 +55,25 @@ func resourceAwsGlueCatalogTable() *schema.Resource {
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"comment": {
-							Type:     schema.TypeString,
+						"columns": {
+							Type:     schema.TypeList,
 							Optional: true,
-						},
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"type": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"comment": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"name": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+									"type": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+								},
+							},
 						},
 					},
 				},
