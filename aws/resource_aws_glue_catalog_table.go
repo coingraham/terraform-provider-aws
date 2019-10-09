@@ -290,7 +290,7 @@ func resourceAwsGlueCatalogTableRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("error setting storage_descriptor: %s", err)
 	}
 
-	if err := d.Set("partition_keys", flattenGlueColumns(out.Table.PartitionKeys)); err != nil {
+	if err := d.Set("partition_keys", flattenGluePartitionKeys(out.Table.PartitionKeys)); err != nil {
 		return fmt.Errorf("error setting partition_keys: %s", err)
 	}
 
@@ -368,8 +368,7 @@ func expandGlueTableInput(d *schema.ResourceData) *glue.TableInput {
 	}
 
 	if v, ok := d.GetOk("partition_keys"); ok {
-		columns := expandGlueColumns(v.([]interface{}))
-		tableInput.PartitionKeys = columns
+		tableInput.PartitionKeys = expandGluePartitionKeys(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("view_original_text"); ok {
@@ -461,6 +460,22 @@ func expandGlueStorageDescriptor(l []interface{}) *glue.StorageDescriptor {
 	}
 
 	return storageDescriptor
+}
+
+func expandGluePartitionKeys(l []interface{}) *glue.PartitionKeys {
+	if len(l) == 0 {
+		return nil
+	}
+
+	s := l[0].(map[string]interface{})
+	partitionKeys := &glue.PartitionKeys{}
+
+	if v, ok := s["columns"]; ok {
+		columns := expandGlueColumns(v.([]interface{}))
+		partitionKeys.Columns = columns
+	}
+
+	return partitionKeys
 }
 
 func expandGlueColumns(columns []interface{}) []*glue.Column {
@@ -594,6 +609,23 @@ func flattenGlueStorageDescriptor(s *glue.StorageDescriptor) []map[string]interf
 	storageDescriptors[0] = storageDescriptor
 
 	return storageDescriptors
+}
+
+func flattenGluePartitionKeys(s *glue.PartitionKeys) []map[string]interface{} {
+	if s == nil {
+		partitionKeys := make([]map[string]interface{}, 0)
+		return partitionKeys
+	}
+
+	partitionKeys := make([]map[string]interface{}, 1)
+
+	partitionKey := make(map[string]interface{})
+
+	partitionKey["columns"] = flattenGlueColumns(s.Columns)
+
+	partitionKeys[0] = partitionKey
+
+	return partitionKeys
 }
 
 func flattenGlueColumns(cs []*glue.Column) []map[string]string {
